@@ -164,6 +164,7 @@ namespace osu.Game.Configuration
 
             SetDefault(OsuSetting.EditorWaveformOpacity, 0.25f);
             SetDefault(OsuSetting.EditorHitAnimations, false);
+            SetDefault(OsuSetting.BroadcastGameState, false);
         }
 
         public IDictionary<OsuSetting, string> GetLoggableState() =>
@@ -360,5 +361,6 @@ namespace osu.Game.Configuration
         DiscordRichPresence,
         AutomaticallyDownloadWhenSpectating,
         ShowOnlineExplicitContent,
+        BroadcastGameState,
     }
 }
