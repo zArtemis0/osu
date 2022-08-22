@@ -23,7 +23,7 @@ namespace osu.Game.Rulesets.Osu.Mods
         public override string Name => @"Strict Tracking";
         public override string Acronym => @"ST";
         public override ModType Type => ModType.DifficultyIncrease;
-        public override string Description => @"Once you start a slider, follow precisely or get a miss.";
+        public override string Description => @"Once you start a slider, follow precisely or break combo.";
         public override double ScoreMultiplier => 1.0;
         public override Type[] IncompatibleMods => new[] { typeof(ModClassic), typeof(OsuModTarget) };
 
@@ -35,7 +35,7 @@ namespace osu.Game.Rulesets.Osu.Mods
                 {
                     if (e.NewValue || slider.Judged) return;
 
-                    var tail = slider.NestedHitObjects.OfType<StrictTrackingDrawableSliderTail>().First();
+                    var tail = slider.NestedHitObjects.OfType<DrawableSliderTail>().First();
 
                     if (!tail.Judged)
                         tail.MissForcefully();
@@ -65,7 +65,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         public void ApplyToDrawableRuleset(DrawableRuleset<OsuHitObject> drawableRuleset)
         {
-            drawableRuleset.Playfield.RegisterPool<StrictTrackingSliderTailCircle, StrictTrackingDrawableSliderTail>(10, 100);
+            drawableRuleset.Playfield.RegisterPool<StrictTrackingSliderTailCircle, DrawableSliderTail>(10, 100);
         }
 
         private class StrictTrackingSliderTailCircle : SliderTailCircle
@@ -75,12 +75,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             {
             }
 
-            public override Judgement CreateJudgement() => new OsuJudgement();
-        }
-
-        private class StrictTrackingDrawableSliderTail : DrawableSliderTail
-        {
-            public override bool DisplayResult => true;
+            public override Judgement CreateJudgement() => new SliderTickJudgement();
         }
 
         private class StrictTrackingSlider : Slider
