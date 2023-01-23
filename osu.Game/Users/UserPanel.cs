@@ -66,22 +66,17 @@ namespace osu.Game.Users
         {
             Masking = true;
 
-            AddRange(new[]
+            Add(new Box
             {
-                new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = ColourProvider?.Background5 ?? Colours.Gray1
-                },
-                Background = new UserCoverBackground
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    User = User,
-                },
-                CreateLayout()
+                RelativeSizeAxes = Axes.Both,
+                Colour = ColourProvider?.Background5 ?? Colours.Gray1
             });
+
+            var background = CreateBackground();
+            if (background != null)
+                Add(background);
+
+            Add(CreateLayout());
 
             base.Action = ViewProfile = () =>
             {
@@ -97,6 +92,14 @@ namespace osu.Game.Users
             Font = OsuFont.GetFont(size: 16, weight: FontWeight.Bold),
             Shadow = false,
             Text = User.Username,
+        };
+
+        protected virtual Drawable? CreateBackground() => Background = new UserCoverBackground
+        {
+            RelativeSizeAxes = Axes.Both,
+            Anchor = Anchor.Centre,
+            Origin = Anchor.Centre,
+            User = User
         };
 
         public MenuItem[] ContextMenuItems

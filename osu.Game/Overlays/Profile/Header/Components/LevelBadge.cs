@@ -47,6 +47,8 @@ namespace osu.Game.Overlays.Profile.Header.Components
                     Font = OsuFont.GetFont(size: 20)
                 }
             };
+
+            LevelInfo.BindValueChanged(user => updateLevel(user.NewValue));
         }
 
         protected override void LoadComplete()
@@ -59,6 +61,7 @@ namespace osu.Game.Overlays.Profile.Header.Components
         private void updateLevel(UserStatistics.LevelInfo? levelInfo)
         {
             string level = levelInfo?.Current.ToString() ?? "0";
+
             levelText.Text = level;
             TooltipText = UsersStrings.ShowStatsLevel(level);
         }

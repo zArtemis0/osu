@@ -87,6 +87,8 @@ namespace osu.Game.Overlays.Profile.Header
                     }
                 }
             };
+
+            User.BindValueChanged(user => updateDisplay(user.NewValue?.User));
         }
 
         protected override void LoadComplete()

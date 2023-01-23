@@ -122,8 +122,7 @@ namespace osu.Game.Screens.Play
                                     {
                                         Anchor = Anchor.CentreLeft,
                                         Origin = Anchor.CentreLeft,
-                                        Height = 145,
-                                        Width = 290,
+                                        Width = 350,
                                     },
                                     new SpriteIcon
                                     {
