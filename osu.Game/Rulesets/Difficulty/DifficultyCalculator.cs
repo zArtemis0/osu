@@ -297,6 +297,7 @@ namespace osu.Game.Rulesets.Difficulty
 
             IReadOnlyList<HitObject> IBeatmap.HitObjects => HitObjects;
 
+
             #region Delegated IBeatmap implementation
 
             public BeatmapInfo BeatmapInfo
@@ -317,6 +318,12 @@ namespace osu.Game.Rulesets.Difficulty
             {
                 get => baseBeatmap.Difficulty;
                 set => baseBeatmap.Difficulty = value;
+            }
+
+            public IBeatmapSettings Settings
+            {
+                get => baseBeatmap.Settings;
+                set => baseBeatmap.Settings = value;
             }
 
             public List<BreakPeriod> Breaks => baseBeatmap.Breaks;

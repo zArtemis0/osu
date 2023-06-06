@@ -53,6 +53,8 @@ namespace osu.Game.Beatmaps
         /// </summary>
         IReadOnlyList<HitObject> HitObjects { get; }
 
+        IBeatmapSettings Settings { get; set; }
+
         /// <summary>
         /// Returns statistics for the <see cref="HitObjects"/> contained in this beatmap.
         /// </summary>
