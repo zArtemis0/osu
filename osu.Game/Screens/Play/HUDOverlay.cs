@@ -98,6 +98,8 @@ namespace osu.Game.Screens.Play
         /// </summary>
         public readonly FillFlowContainer LeaderboardFlow;
 
+        public readonly FillFlowContainer SpectatorFlow;
+
         private readonly List<Drawable> hideTargets;
 
         public HUDOverlay(DrawableRuleset drawableRuleset, IReadOnlyList<Mod> mods, bool alwaysShowLeaderboard = true)
@@ -154,6 +156,13 @@ namespace osu.Game.Screens.Play
                     AutoSizeAxes = Axes.Both,
                     Direction = FillDirection.Vertical,
                     Padding = new MarginPadding(44), // enough margin to avoid the hit error display
+                    Spacing = new Vector2(5)
+                },
+                SpectatorFlow = new FillFlowContainer
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Direction = FillDirection.Vertical,
+                    Padding = new MarginPadding(44),
                     Spacing = new Vector2(5)
                 },
                 clicksPerSecondCalculator = new ClicksPerSecondCalculator(),

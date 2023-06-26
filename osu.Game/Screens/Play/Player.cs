@@ -857,6 +857,24 @@ namespace osu.Game.Screens.Play
 
         protected readonly Bindable<bool> LeaderboardExpandedState = new BindableBool();
 
+        private void loadSpectators()
+        {
+            var spectators = CreateGameplaySpectatorList();
+
+            if (spectators != null)
+            {
+                LoadComponentAsync(spectators, list =>
+                {
+                    if (!LoadedBeatmapSuccessfully)
+                        return;
+
+                    // TODO: On new spectate, add user
+                    // TODO: On spectate leave, remove user
+                    addSpectatorsToHUD(list);
+                });
+            }
+        }
+
         private void loadLeaderboard()
         {
             HUDOverlay.HoldingForHUD.BindValueChanged(_ => updateLeaderboardExpandedState());
@@ -881,7 +899,12 @@ namespace osu.Game.Screens.Play
         [CanBeNull]
         protected virtual GameplayLeaderboard CreateGameplayLeaderboard() => null;
 
+        [CanBeNull]
+        protected virtual GameplaySpectatorList CreateGameplaySpectatorList() => null;
+
         protected virtual void AddLeaderboardToHUD(GameplayLeaderboard leaderboard) => HUDOverlay.LeaderboardFlow.Add(leaderboard);
+
+        private void addSpectatorsToHUD(GameplaySpectatorList spectators) => HUDOverlay.SpectatorFlow.Add(spectators);
 
         private void updateLeaderboardExpandedState() =>
             LeaderboardExpandedState.Value = !LocalUserPlaying.Value || HUDOverlay.HoldingForHUD.Value;

@@ -65,6 +65,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.Token, string.Empty);
 
             SetDefault(OsuSetting.AutomaticallyDownloadWhenSpectating, false);
+            SetDefault(OsuSetting.DisplaySpectatorList, true);
 
             SetDefault(OsuSetting.SavePassword, false).ValueChanged += enabled =>
             {
@@ -377,6 +378,7 @@ namespace osu.Game.Configuration
         EditorAutoSeekOnPlacement,
         DiscordRichPresence,
         AutomaticallyDownloadWhenSpectating,
+        DisplaySpectatorList,
         ShowOnlineExplicitContent,
         LastProcessedMetadataId,
         SafeAreaConsiderations,
