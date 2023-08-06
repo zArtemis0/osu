@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Utils;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Utils;
 
 namespace osu.Game.Rulesets.Difficulty.Skills
 {
@@ -29,7 +31,7 @@ namespace osu.Game.Rulesets.Difficulty.Skills
 
         private double currentSectionEnd;
 
-        private readonly List<double> strainPeaks = new List<double>();
+        private readonly CompactList strainPeaks = new CompactList();
 
         protected StrainSkill(Mod[] mods)
             : base(mods)
@@ -55,6 +57,15 @@ namespace osu.Game.Rulesets.Difficulty.Skills
                 saveCurrentPeak();
                 startNewSectionFrom(currentSectionEnd, current);
                 currentSectionEnd += SectionLength;
+
+                // If the current peak is 0 it can't decay any further so we can leave early
+                if (Precision.AlmostEquals(currentSectionPeak, 0, CompactList.ACCEPTABLE_DIFFERENCE) && current.StartTime > currentSectionEnd)
+                {
+                    double remainingTime = current.StartTime - currentSectionEnd;
+                    double remainingIterations = Math.Ceiling(remainingTime / SectionLength);
+                    currentSectionEnd += remainingIterations * SectionLength;
+                    strainPeaks.Add(0.0, (int)remainingIterations);
+                }
             }
 
             currentSectionPeak = Math.Max(StrainValueAt(current), currentSectionPeak);
