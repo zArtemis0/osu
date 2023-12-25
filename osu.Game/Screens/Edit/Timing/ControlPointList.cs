@@ -118,7 +118,8 @@ namespace osu.Game.Screens.Edit.Timing
 
         protected override bool OnClick(ClickEvent e)
         {
-            selectedGroup.Value = null;
+            if (!ControlPointTable.locked_table)
+                selectedGroup.Value = null;
             return true;
         }
 
@@ -168,7 +169,7 @@ namespace osu.Game.Screens.Edit.Timing
                 }
             }
 
-            if (trackedType != null)
+            if (trackedType != null && !ControlPointTable.locked_table)
             {
                 // We don't have an efficient way of looking up groups currently, only individual point types.
                 // To improve the efficiency of this in the future, we should reconsider the overall structure of ControlPointInfo.
@@ -189,6 +190,8 @@ namespace osu.Game.Screens.Edit.Timing
                 return;
 
             Beatmap.ControlPointInfo.RemoveGroup(selectedGroup.Value);
+
+            ControlPointTable.locked_table = false;
 
             selectedGroup.Value = Beatmap.ControlPointInfo.Groups.FirstOrDefault(g => g.Time >= clock.CurrentTime);
         }
@@ -214,6 +217,8 @@ namespace osu.Game.Screens.Edit.Timing
                     }
                 }
             }
+
+            ControlPointTable.locked_table = false;
 
             selectedGroup.Value = group;
         }
