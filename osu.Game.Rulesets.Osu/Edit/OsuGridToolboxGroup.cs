@@ -37,7 +37,6 @@ namespace osu.Game.Rulesets.Osu.Edit
         {
             MinValue = 0f,
             MaxValue = OsuPlayfield.BASE_SIZE.X,
-            Precision = 1f
         };
 
         /// <summary>
@@ -47,7 +46,6 @@ namespace osu.Game.Rulesets.Osu.Edit
         {
             MinValue = 0f,
             MaxValue = OsuPlayfield.BASE_SIZE.Y,
-            Precision = 1f
         };
 
         /// <summary>
@@ -57,7 +55,6 @@ namespace osu.Game.Rulesets.Osu.Edit
         {
             MinValue = 4f,
             MaxValue = 128f,
-            Precision = 1f
         };
 
         /// <summary>
@@ -67,7 +64,6 @@ namespace osu.Game.Rulesets.Osu.Edit
         {
             MinValue = -45f,
             MaxValue = 45f,
-            Precision = 1f
         };
 
         /// <summary>
@@ -101,9 +97,15 @@ namespace osu.Game.Rulesets.Osu.Edit
         {
             StartPositionX.Value = point1.X;
             StartPositionY.Value = point1.Y;
-            GridLinesRotation.Value = (MathHelper.RadiansToDegrees(MathF.Atan2(point2.Y - point1.Y, point2.X - point1.X)) + 405) % 90 - 45;
+
+            // Get the angle between the two points and normalize to the valid range.
+            float period = GridType.Value == PositionSnapGridType.Triangle ? 60 : 90;
+            GridLinesRotation.Value = (MathHelper.RadiansToDegrees(MathF.Atan2(point2.Y - point1.Y, point2.X - point1.X))
+                                       + 360 + period / 2) % period - period / 2;
+
+            // Divide the distance so that there is a good density of grid lines.
             float dist = Vector2.Distance(point1, point2);
-            while (dist > Spacing.MaxValue)
+            while (dist > 32)
                 dist /= 2;
             Spacing.Value = dist;
         }
@@ -115,7 +117,7 @@ namespace osu.Game.Rulesets.Osu.Edit
             {
                 startPositionXSlider = new ExpandableSlider<float>
                 {
-                    Current = StartPositionX
+                    Current = StartPositionX,
                 },
                 startPositionYSlider = new ExpandableSlider<float>
                 {
@@ -167,30 +169,36 @@ namespace osu.Game.Rulesets.Osu.Edit
 
             StartPositionX.BindValueChanged(x =>
             {
-                startPositionXSlider.ContractedLabelText = $"X: {x.NewValue:N0}";
-                startPositionXSlider.ExpandedLabelText = $"X Offset: {x.NewValue:N0}";
+                startPositionXSlider.ContractedLabelText = $"X: {x.NewValue:#,0.##}";
+                startPositionXSlider.ExpandedLabelText = $"X Offset: {x.NewValue:#,0.##}";
                 StartPosition.Value = new Vector2(x.NewValue, StartPosition.Value.Y);
             }, true);
 
             StartPositionY.BindValueChanged(y =>
             {
-                startPositionYSlider.ContractedLabelText = $"Y: {y.NewValue:N0}";
-                startPositionYSlider.ExpandedLabelText = $"Y Offset: {y.NewValue:N0}";
+                startPositionYSlider.ContractedLabelText = $"Y: {y.NewValue:#,0.##}";
+                startPositionYSlider.ExpandedLabelText = $"Y Offset: {y.NewValue:#,0.##}";
                 StartPosition.Value = new Vector2(StartPosition.Value.X, y.NewValue);
             }, true);
 
+            StartPosition.BindValueChanged(pos =>
+            {
+                StartPositionX.Value = pos.NewValue.X;
+                StartPositionY.Value = pos.NewValue.Y;
+            });
+
             Spacing.BindValueChanged(spacing =>
             {
-                spacingSlider.ContractedLabelText = $"S: {spacing.NewValue:N0}";
-                spacingSlider.ExpandedLabelText = $"Spacing: {spacing.NewValue:N0}";
+                spacingSlider.ContractedLabelText = $"S: {spacing.NewValue:#,0.##}";
+                spacingSlider.ExpandedLabelText = $"Spacing: {spacing.NewValue:#,0.##}";
                 SpacingVector.Value = new Vector2(spacing.NewValue);
                 editorBeatmap.BeatmapInfo.GridSize = (int)spacing.NewValue;
             }, true);
 
             GridLinesRotation.BindValueChanged(rotation =>
             {
-                gridLinesRotationSlider.ContractedLabelText = $"R: {rotation.NewValue:N0}";
-                gridLinesRotationSlider.ExpandedLabelText = $"Rotation: {rotation.NewValue:N0}";
+                gridLinesRotationSlider.ContractedLabelText = $"R: {rotation.NewValue:#,0.##}";
+                gridLinesRotationSlider.ExpandedLabelText = $"Rotation: {rotation.NewValue:#,0.##}";
             }, true);
         }
 
