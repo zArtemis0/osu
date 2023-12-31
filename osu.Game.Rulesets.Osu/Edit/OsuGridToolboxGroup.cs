@@ -6,10 +6,12 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Input.Bindings;
@@ -18,6 +20,7 @@ using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Components.RadioButtons;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {
@@ -29,6 +32,9 @@ namespace osu.Game.Rulesets.Osu.Edit
 
         [Resolved]
         private EditorBeatmap editorBeatmap { get; set; } = null!;
+
+        [Resolved]
+        private IExpandingContainer? expandingContainer { get; set; }
 
         /// <summary>
         /// X position of the grid's origin.
@@ -84,6 +90,7 @@ namespace osu.Game.Rulesets.Osu.Edit
         private ExpandableSlider<float> startPositionYSlider = null!;
         private ExpandableSlider<float> spacingSlider = null!;
         private ExpandableSlider<float> gridLinesRotationSlider = null!;
+        private RoundedButton gridFromPointsButton = null!;
         private EditorRadioButtonCollection gridTypeButtons = null!;
 
         public event Action? GridFromPointsClicked;
@@ -131,7 +138,7 @@ namespace osu.Game.Rulesets.Osu.Edit
                 {
                     Current = GridLinesRotation
                 },
-                new RoundedButton
+                gridFromPointsButton = new RoundedButton
                 {
                     Action = () => GridFromPointsClicked?.Invoke(),
                     RelativeSizeAxes = Axes.X,
@@ -147,7 +154,7 @@ namespace osu.Game.Rulesets.Osu.Edit
                             () => new SpriteIcon { Icon = FontAwesome.Regular.Square }),
                         new RadioButton("Triangle",
                             () => GridType.Value = PositionSnapGridType.Triangle,
-                            () => new Triangle()),
+                            () => new OutlineTriangle(true, 20)),
                         new RadioButton("Circle",
                             () => GridType.Value = PositionSnapGridType.Circle,
                             () => new SpriteIcon { Icon = FontAwesome.Regular.Circle }),
@@ -156,6 +163,36 @@ namespace osu.Game.Rulesets.Osu.Edit
             };
 
             Spacing.Value = editorBeatmap.BeatmapInfo.GridSize;
+        }
+
+        public partial class OutlineTriangle : BufferedContainer
+        {
+            public OutlineTriangle(bool outlineOnly, float size)
+                : base(cachedFrameBuffer: true)
+            {
+                Size = new Vector2(size);
+
+                InternalChildren = new Drawable[]
+                {
+                    new EquilateralTriangle { RelativeSizeAxes = Axes.Both },
+                };
+
+                if (outlineOnly)
+                {
+                    AddInternal(new EquilateralTriangle
+                    {
+                        Anchor = Anchor.TopCentre,
+                        Origin = Anchor.Centre,
+                        RelativePositionAxes = Axes.Y,
+                        Y = 0.48f,
+                        Colour = Color4.Black,
+                        Size = new Vector2(size - 7),
+                        Blending = BlendingParameters.None,
+                    });
+                }
+
+                Blending = BlendingParameters.Additive;
+            }
         }
 
         protected override void LoadComplete()
@@ -196,6 +233,20 @@ namespace osu.Game.Rulesets.Osu.Edit
             {
                 gridLinesRotationSlider.ContractedLabelText = $"R: {rotation.NewValue:#,0.##}";
                 gridLinesRotationSlider.ExpandedLabelText = $"Rotation: {rotation.NewValue:#,0.##}";
+            }, true);
+
+            expandingContainer?.Expanded.BindValueChanged(v =>
+            {
+                if (v.NewValue)
+                {
+                    gridFromPointsButton.ResizeHeightTo(40, 50, Easing.OutQuint);
+                    gridFromPointsButton.FadeIn(500, Easing.OutQuint);
+                }
+                else
+                {
+                    gridFromPointsButton.ResizeHeightTo(0, 50);
+                    gridFromPointsButton.FadeOut(50, Easing.OutQuint);
+                }
             }, true);
         }
 
