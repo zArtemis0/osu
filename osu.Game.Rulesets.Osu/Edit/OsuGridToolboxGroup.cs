@@ -166,36 +166,6 @@ namespace osu.Game.Rulesets.Osu.Edit
             Spacing.Value = editorBeatmap.BeatmapInfo.GridSize;
         }
 
-        public partial class OutlineTriangle : BufferedContainer
-        {
-            public OutlineTriangle(bool outlineOnly, float size)
-                : base(cachedFrameBuffer: true)
-            {
-                Size = new Vector2(size);
-
-                InternalChildren = new Drawable[]
-                {
-                    new EquilateralTriangle { RelativeSizeAxes = Axes.Both },
-                };
-
-                if (outlineOnly)
-                {
-                    AddInternal(new EquilateralTriangle
-                    {
-                        Anchor = Anchor.TopCentre,
-                        Origin = Anchor.Centre,
-                        RelativePositionAxes = Axes.Y,
-                        Y = 0.48f,
-                        Colour = Color4.Black,
-                        Size = new Vector2(size - 7),
-                        Blending = BlendingParameters.None,
-                    });
-                }
-
-                Blending = BlendingParameters.Additive;
-            }
-        }
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -276,6 +246,36 @@ namespace osu.Game.Rulesets.Osu.Edit
 
         public void OnReleased(KeyBindingReleaseEvent<GlobalAction> e)
         {
+        }
+
+        public partial class OutlineTriangle : BufferedContainer
+        {
+            public OutlineTriangle(bool outlineOnly, float size)
+                : base(cachedFrameBuffer: true)
+            {
+                Size = new Vector2(size);
+
+                InternalChildren = new Drawable[]
+                {
+                    new EquilateralTriangle { RelativeSizeAxes = Axes.Both },
+                };
+
+                if (outlineOnly)
+                {
+                    AddInternal(new EquilateralTriangle
+                    {
+                        Anchor = Anchor.TopCentre,
+                        Origin = Anchor.Centre,
+                        RelativePositionAxes = Axes.Y,
+                        Y = 0.48f,
+                        Colour = Color4.Black,
+                        Size = new Vector2(size - 7),
+                        Blending = BlendingParameters.None,
+                    });
+                }
+
+                Blending = BlendingParameters.Additive;
+            }
         }
     }
 
