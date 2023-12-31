@@ -195,6 +195,11 @@ namespace osu.Game.Localisation
         public static LocalisableString EditorCycleGridDisplayMode => new TranslatableString(getKey(@"editor_cycle_grid_display_mode"), @"Cycle grid display mode");
 
         /// <summary>
+        /// "Choose grid from points"
+        /// </summary>
+        public static LocalisableString EditorGridFromPoints => new TranslatableString(getKey(@"editor_grid_from_points"), @"Choose grid from points");
+
+        /// <summary>
         /// "Test gameplay"
         /// </summary>
         public static LocalisableString EditorTestGameplay => new TranslatableString(getKey(@"editor_test_gameplay"), @"Test gameplay");

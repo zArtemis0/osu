@@ -131,6 +131,7 @@ namespace osu.Game.Input.Bindings
             new KeyBinding(new[] { InputKey.J }, GlobalAction.EditorNudgeLeft),
             new KeyBinding(new[] { InputKey.K }, GlobalAction.EditorNudgeRight),
             new KeyBinding(new[] { InputKey.G }, GlobalAction.EditorCycleGridDisplayMode),
+            new KeyBinding(new[] { InputKey.B }, GlobalAction.EditorGridFromPoints),
             new KeyBinding(new[] { InputKey.F5 }, GlobalAction.EditorTestGameplay),
             new KeyBinding(new[] { InputKey.T }, GlobalAction.EditorTapForBPM),
             new KeyBinding(new[] { InputKey.Control, InputKey.H }, GlobalAction.EditorFlipHorizontally),
@@ -349,6 +350,9 @@ namespace osu.Game.Input.Bindings
 
         [LocalisableDescription(typeof(GlobalActionKeyBindingStrings), nameof(GlobalActionKeyBindingStrings.EditorCycleGridDisplayMode))]
         EditorCycleGridDisplayMode,
+
+        [LocalisableDescription(typeof(GlobalActionKeyBindingStrings), nameof(GlobalActionKeyBindingStrings.EditorGridFromPoints))]
+        EditorGridFromPoints,
 
         [LocalisableDescription(typeof(GlobalActionKeyBindingStrings), nameof(GlobalActionKeyBindingStrings.EditorTestGameplay))]
         EditorTestGameplay,

@@ -265,6 +265,10 @@ namespace osu.Game.Rulesets.Osu.Edit
                 case GlobalAction.EditorCycleGridDisplayMode:
                     nextGridType();
                     return true;
+
+                case GlobalAction.EditorGridFromPoints:
+                    GridFromPointsClicked?.Invoke();
+                    return true;
             }
 
             return false;
