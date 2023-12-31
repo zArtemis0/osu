@@ -100,6 +100,8 @@ namespace osu.Game.Rulesets.Osu.Edit
         {
         }
 
+        private const float max_automatic_spacing = 64;
+
         public void SetGridFromPoints(Vector2 point1, Vector2 point2)
         {
             StartPositionX.Value = point1.X;
@@ -111,9 +113,8 @@ namespace osu.Game.Rulesets.Osu.Edit
                                        + period * 1.5f) % period - period * 0.5f;
 
             // Divide the distance so that there is a good density of grid lines.
-            const float max_dist = 64;
             float dist = Vector2.Distance(point1, point2);
-            while (dist > max_dist)
+            while (dist >= max_automatic_spacing)
                 dist /= 2;
             Spacing.Value = dist;
         }
@@ -228,6 +229,11 @@ namespace osu.Game.Rulesets.Osu.Edit
             }, true);
         }
 
+        private void nextGridSize()
+        {
+            Spacing.Value = Spacing.Value * 2 >= max_automatic_spacing ? Spacing.Value / 8 : Spacing.Value * 2;
+        }
+
         private void nextGridType()
         {
             currentGridTypeIndex = (currentGridTypeIndex + 1) % grid_types.Length;
@@ -240,6 +246,10 @@ namespace osu.Game.Rulesets.Osu.Edit
             switch (e.Action)
             {
                 case GlobalAction.EditorCycleGridDisplayMode:
+                    nextGridSize();
+                    return true;
+
+                case GlobalAction.EditorCycleGridType:
                     nextGridType();
                     return true;
 
