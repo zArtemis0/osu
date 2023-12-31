@@ -143,26 +143,35 @@ namespace osu.Game.Rulesets.Osu.Edit
                     Current = GridLinesRotation,
                     KeyboardStep = 1,
                 },
-                gridFromPointsButton = new RoundedButton
-                {
-                    Action = () => GridFromPointsClicked?.Invoke(),
-                    RelativeSizeAxes = Axes.X,
-                    Text = "Grid from points",
-                },
-                gridTypeButtons = new EditorRadioButtonCollection
+                new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
-                    Items = new[]
+                    AutoSizeAxes = Axes.Y,
+                    Spacing = new Vector2(0f, 10f),
+                    Children = new Drawable[]
                     {
-                        new RadioButton("Square",
-                            () => GridType.Value = PositionSnapGridType.Square,
-                            () => new SpriteIcon { Icon = FontAwesome.Regular.Square }),
-                        new RadioButton("Triangle",
-                            () => GridType.Value = PositionSnapGridType.Triangle,
-                            () => new OutlineTriangle(true, 20)),
-                        new RadioButton("Circle",
-                            () => GridType.Value = PositionSnapGridType.Circle,
-                            () => new SpriteIcon { Icon = FontAwesome.Regular.Circle }),
+                        gridFromPointsButton = new RoundedButton
+                        {
+                            Action = () => GridFromPointsClicked?.Invoke(),
+                            RelativeSizeAxes = Axes.X,
+                            Text = "Grid from points",
+                        },
+                        gridTypeButtons = new EditorRadioButtonCollection
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Items = new[]
+                            {
+                                new RadioButton("Square",
+                                    () => GridType.Value = PositionSnapGridType.Square,
+                                    () => new SpriteIcon { Icon = FontAwesome.Regular.Square }),
+                                new RadioButton("Triangle",
+                                    () => GridType.Value = PositionSnapGridType.Triangle,
+                                    () => new OutlineTriangle(true, 20)),
+                                new RadioButton("Circle",
+                                    () => GridType.Value = PositionSnapGridType.Circle,
+                                    () => new SpriteIcon { Icon = FontAwesome.Regular.Circle }),
+                            }
+                        },
                     }
                 },
             };
@@ -212,16 +221,10 @@ namespace osu.Game.Rulesets.Osu.Edit
 
             expandingContainer?.Expanded.BindValueChanged(v =>
             {
-                if (v.NewValue)
-                {
-                    gridFromPointsButton.ResizeHeightTo(40, 50, Easing.OutQuint);
-                    gridFromPointsButton.FadeIn(500, Easing.OutQuint);
-                }
-                else
-                {
-                    gridFromPointsButton.ResizeHeightTo(0, 50);
-                    gridFromPointsButton.FadeOut(50, Easing.OutQuint);
-                }
+                gridFromPointsButton.FadeTo(v.NewValue ? 1f : 0f, 500, Easing.OutQuint);
+                gridFromPointsButton.BypassAutoSizeAxes = !v.NewValue ? Axes.Y : Axes.None;
+                gridTypeButtons.FadeTo(v.NewValue ? 1f : 0f, 500, Easing.OutQuint);
+                gridTypeButtons.BypassAutoSizeAxes = !v.NewValue ? Axes.Y : Axes.None;
             }, true);
         }
 
