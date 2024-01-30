@@ -84,7 +84,7 @@ namespace osu.Android
             host.Window.CursorState |= CursorState.Hidden;
         }
 
-        protected override UpdateManager CreateUpdateManager() => new SimpleUpdateManager();
+        protected override UpdateManager CreateUpdateManager() => new SimpleUpdateManager(new OsuGitHubUpdateChecker(this));
 
         protected override BatteryInfo CreateBatteryInfo() => new AndroidBatteryInfo();
 
