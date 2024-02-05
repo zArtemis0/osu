@@ -18,6 +18,7 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Replays;
+using osu.Game.Rulesets.Osu.Scoring;
 using osu.Game.Rulesets.Replays;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
@@ -474,17 +475,17 @@ namespace osu.Game.Rulesets.Osu.Tests
             }
         }
 
-        private class TestHitWindows : HitWindows
+        private class TestHitWindows : OsuHitWindows
         {
-            private static readonly DifficultyRange[] ranges =
+            private static readonly HitWindowRange[] ranges =
             {
-                new DifficultyRange(HitResult.Great, 500, 500, 500),
-                new DifficultyRange(HitResult.Miss, early_miss_window, early_miss_window, early_miss_window),
+                new HitWindowRange(HitResult.Great, 500, 500, 500),
+                new HitWindowRange(HitResult.Miss, early_miss_window, early_miss_window, early_miss_window),
             };
 
             public override bool IsHitResultAllowed(HitResult result) => result == HitResult.Great || result == HitResult.Miss;
 
-            protected override DifficultyRange[] GetRanges() => ranges;
+            protected override HitWindowRange[] GetRanges() => ranges;
         }
 
         private partial class ScoreAccessibleReplayPlayer : ReplayPlayer

@@ -15,14 +15,14 @@ namespace osu.Game.Rulesets.Scoring
     /// </summary>
     public class HitWindows
     {
-        private static readonly DifficultyRange[] base_ranges =
+        private static readonly HitWindowRange[] base_ranges =
         {
-            new DifficultyRange(HitResult.Perfect, 22.4D, 19.4D, 13.9D),
-            new DifficultyRange(HitResult.Great, 64, 49, 34),
-            new DifficultyRange(HitResult.Good, 97, 82, 67),
-            new DifficultyRange(HitResult.Ok, 127, 112, 97),
-            new DifficultyRange(HitResult.Meh, 151, 136, 121),
-            new DifficultyRange(HitResult.Miss, 188, 173, 158),
+            new HitWindowRange(HitResult.Perfect, 40, 30, 20),
+            new HitWindowRange(HitResult.Great, 60, 45, 30),
+            new HitWindowRange(HitResult.Good, 120, 90, 60),
+            new HitWindowRange(HitResult.Ok, 180, 135, 90),
+            new HitWindowRange(HitResult.Meh, 240, 180, 120),
+            new HitWindowRange(HitResult.Miss, 300, 225, 150),
         };
 
         private double perfect;
@@ -31,6 +31,9 @@ namespace osu.Game.Rulesets.Scoring
         private double ok;
         private double meh;
         private double miss;
+
+        private double difficulty;
+        private bool isLegacy;
 
         /// <summary>
         /// An empty <see cref="HitWindows"/> with only <see cref="HitResult.Miss"/> and <see cref="HitResult.Perfect"/>.
@@ -84,9 +87,11 @@ namespace osu.Game.Rulesets.Scoring
         /// <param name="difficulty">The parameter.</param>
         public void SetDifficulty(double difficulty)
         {
+            this.difficulty = difficulty;
+
             foreach (var range in GetRanges())
             {
-                double value = IBeatmapDifficultyInfo.DifficultyRange(difficulty, (range.Min, range.Average, range.Max));
+                double value = HitWindowValueFor(difficulty, range);
 
                 switch (range.Result)
                 {
@@ -118,6 +123,29 @@ namespace osu.Game.Rulesets.Scoring
         }
 
         /// <summary>
+        /// Calculates the difficulty value to which the difficulty parameter maps in the difficulty range.
+        /// </summary>
+        /// <param name="difficulty">The difficulty parameter.</param>
+        /// <param name="range">The range of difficulty values.</param>
+        /// <returns>Value to which the difficulty parameter maps in the specified range.</returns>
+        protected virtual double HitWindowValueFor(double difficulty, HitWindowRange range)
+        {
+            double value = IBeatmapDifficultyInfo.DifficultyRange(difficulty, (range.Min, range.Average, range.Max));
+
+            if (isLegacy)
+            {
+                value = Math.Floor(value) - 0.5; // represents the "true" hit windows in osu!stable; osu!stable rounded input times to integers (which is equivalent to the 0.5 ms shift here), and hit windows were floored
+
+                if (LegacyIsInclusive)
+                {
+                    value += 1.0; // abs(round(hit_error)) <= floor(hit_window) is equivalent to abs(round(hit_error)) < floor(hit_window) + 1 = floor(hit_window + 1), because both sides of the inequality are integers; therefore, inclusive legacy hit windows are equivalent to 1 ms wider exclusive legacy hit windows
+                }
+            }
+
+            return value;
+        }
+
+        /// <summary>
         /// Retrieves the <see cref="HitResult"/> for a time offset.
         /// </summary>
         /// <param name="timeOffset">The time offset.</param>
@@ -128,11 +156,22 @@ namespace osu.Game.Rulesets.Scoring
 
             for (var result = HitResult.Perfect; result >= HitResult.Miss; --result)
             {
-                if (IsHitResultAllowed(result) && timeOffset <= WindowFor(result))
+                if (IsHitResultAllowed(result) && canEverContain(timeOffset, result))
                     return result;
             }
 
             return HitResult.None;
+        }
+
+        /// <summary>
+        /// Given a time offset and a hit result, checks whether the time offset can ever be contained within the hit window of the hit result.
+        /// </summary>
+        /// <param name="timeOffset">The time offset.</param>
+        /// <param name="result">The <see cref="HitResult"/>.</param>
+        /// <returns>Whether the time offset can ever be contained within the hit window of the hit result.</returns>
+        private bool canEverContain(double timeOffset, HitResult result)
+        {
+            return timeOffset <= WindowFor(result);
         }
 
         /// <summary>
@@ -174,20 +213,31 @@ namespace osu.Game.Rulesets.Scoring
         /// </summary>
         /// <param name="timeOffset">The time offset.</param>
         /// <returns>Whether the <see cref="HitObject"/> can be hit at any point in the future from this time offset.</returns>
-        public bool CanBeHit(double timeOffset) => timeOffset <= WindowFor(LowestSuccessfulHitResult());
+        public bool CanEverBeHit(double timeOffset) => canEverContain(timeOffset, LowestSuccessfulHitResult());
 
         /// <summary>
-        /// Retrieve a valid list of <see cref="DifficultyRange"/>s representing hit windows.
+        /// Retrieve a valid list of <see cref="HitWindowRange"/>s representing hit windows.
         /// Defaults are provided but can be overridden to customise for a ruleset.
         /// </summary>
-        protected virtual DifficultyRange[] GetRanges() => base_ranges;
+        protected virtual HitWindowRange[] GetRanges() => base_ranges;
+
+        /// <summary>
+        /// Whether legacy hit windows are inclusive, or exclusive otherwise.
+        /// </summary>
+        protected virtual bool LegacyIsInclusive => false;
+
+        public void SetLegacy(bool isLegacy)
+        {
+            this.isLegacy = isLegacy;
+            SetDifficulty(difficulty);
+        }
 
         public class EmptyHitWindows : HitWindows
         {
-            private static readonly DifficultyRange[] ranges =
+            private static readonly HitWindowRange[] ranges =
             {
-                new DifficultyRange(HitResult.Perfect, 0, 0, 0),
-                new DifficultyRange(HitResult.Miss, 0, 0, 0),
+                new HitWindowRange(HitResult.Perfect, 0, 0, 0),
+                new HitWindowRange(HitResult.Miss, 0, 0, 0),
             };
 
             public override bool IsHitResultAllowed(HitResult result)
@@ -202,11 +252,11 @@ namespace osu.Game.Rulesets.Scoring
                 return false;
             }
 
-            protected override DifficultyRange[] GetRanges() => ranges;
+            protected override HitWindowRange[] GetRanges() => ranges;
         }
     }
 
-    public struct DifficultyRange
+    public struct HitWindowRange
     {
         public readonly HitResult Result;
 
@@ -214,7 +264,7 @@ namespace osu.Game.Rulesets.Scoring
         public double Average;
         public double Max;
 
-        public DifficultyRange(HitResult result, double min, double average, double max)
+        public HitWindowRange(HitResult result, double min, double average, double max)
         {
             Result = result;
 

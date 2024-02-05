@@ -8,6 +8,16 @@ namespace osu.Game.Rulesets.Mania.Scoring
 {
     public class ManiaHitWindows : HitWindows
     {
+        internal static readonly HitWindowRange[] MANIA_RANGES =
+        {
+            new HitWindowRange(HitResult.Perfect, 16, 16, 16),
+            new HitWindowRange(HitResult.Great, 64, 49, 34),
+            new HitWindowRange(HitResult.Good, 97, 82, 67),
+            new HitWindowRange(HitResult.Ok, 127, 112, 97),
+            new HitWindowRange(HitResult.Meh, 151, 136, 121),
+            new HitWindowRange(HitResult.Miss, 188, 173, 158),
+        };
+
         private readonly double multiplier;
 
         public ManiaHitWindows()
@@ -36,11 +46,13 @@ namespace osu.Game.Rulesets.Mania.Scoring
             return false;
         }
 
-        protected override DifficultyRange[] GetRanges() => base.GetRanges().Select(r =>
-            new DifficultyRange(
+        protected override HitWindowRange[] GetRanges() => MANIA_RANGES.Select(r =>
+            new HitWindowRange(
                 r.Result,
                 r.Min * multiplier,
                 r.Average * multiplier,
                 r.Max * multiplier)).ToArray();
+
+        protected override bool LegacyIsInclusive => true;
     }
 }
