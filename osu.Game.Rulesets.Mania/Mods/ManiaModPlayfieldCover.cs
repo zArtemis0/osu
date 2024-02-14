@@ -35,14 +35,20 @@ namespace osu.Game.Rulesets.Mania.Mods
             {
                 HitObjectContainer hoc = column.HitObjectArea.HitObjectContainer;
                 Container hocParent = (Container)hoc.Parent!;
+                PlayfieldCoveringWrapper pcw;
 
                 hocParent.Remove(hoc, false);
-                hocParent.Add(new PlayfieldCoveringWrapper(hoc).With(c =>
+                hocParent.Add(pcw = new PlayfieldCoveringWrapper(hoc).With(c =>
                 {
                     c.RelativeSizeAxes = Axes.Both;
                     c.Direction = ExpandDirection;
                     c.Coverage = Coverage.Value;
                 }));
+
+                IsDisabled.BindValueChanged(s =>
+                {
+                    pcw.Coverage = s.NewValue ? 0f : Coverage.Value;
+                });
             }
         }
 
