@@ -15,7 +15,6 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Objects;
-using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Screens.Edit.Compose.Components;
 using osu.Game.Utils;
 using osuTK;
@@ -27,6 +26,9 @@ namespace osu.Game.Rulesets.Osu.Edit
     {
         [Resolved(CanBeNull = true)]
         private IDistanceSnapProvider? snapProvider { get; set; }
+
+        [Resolved]
+        private OsuGridToolboxGroup gridToolbox { get; set; } = null!;
 
         /// <summary>
         /// During a transform, the initial path types of a single selected slider are stored so they
@@ -104,13 +106,20 @@ namespace osu.Game.Rulesets.Osu.Edit
         {
             var hitObjects = selectedMovableObjects;
 
-            var flipQuad = flipOverOrigin ? new Quad(0, 0, OsuPlayfield.BASE_SIZE.X, OsuPlayfield.BASE_SIZE.Y) : GeometryUtils.GetSurroundingQuad(hitObjects);
+            // If we're flipping over the origin, we take the grid origin position from the grid toolbox.
+            var flipQuad = flipOverOrigin ? new Quad(gridToolbox.StartPositionX.Value, gridToolbox.StartPositionY.Value, 0, 0) : GeometryUtils.GetSurroundingQuad(hitObjects);
+            // If we're flipping over the origin, we take the grid rotation from the grid toolbox.
+            // We want to normalize the rotation angle to -45 to 45 degrees, so horizontal vs vertical flip is not mixed up by the rotation and it stays intuitive to use.
+            var flipAxis = flipOverOrigin ? GeometryUtils.RotateVector(Vector2.UnitX, -((gridToolbox.GridLinesRotation.Value + 405) % 90 - 45)) : Vector2.UnitX;
+            flipAxis = direction == Direction.Vertical ? flipAxis.PerpendicularLeft : flipAxis;
+
+            var controlPointFlipQuad = new Quad();
 
             bool didFlip = false;
 
             foreach (var h in hitObjects)
             {
-                var flippedPosition = GeometryUtils.GetFlippedPosition(direction, flipQuad, h.Position);
+                var flippedPosition = GeometryUtils.GetFlippedPosition(flipAxis, flipQuad, h.Position);
 
                 if (!Precision.AlmostEquals(flippedPosition, h.Position))
                 {
@@ -123,12 +132,7 @@ namespace osu.Game.Rulesets.Osu.Edit
                     didFlip = true;
 
                     foreach (var cp in slider.Path.ControlPoints)
-                    {
-                        cp.Position = new Vector2(
-                            (direction == Direction.Horizontal ? -1 : 1) * cp.Position.X,
-                            (direction == Direction.Vertical ? -1 : 1) * cp.Position.Y
-                        );
-                    }
+                        cp.Position = GeometryUtils.GetFlippedPosition(flipAxis, controlPointFlipQuad, cp.Position);
                 }
             }
 
