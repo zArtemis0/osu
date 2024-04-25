@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Screens;
@@ -134,16 +135,6 @@ namespace osu.Game.Tests.Visual.Ranking
             });
             AddUntilStep("wait for loaded", () => screen.IsLoaded);
             AddAssert("retry overlay not present", () => screen.RetryOverlay == null);
-        }
-
-        [Test]
-        public void TestResultsForUnranked()
-        {
-            UnrankedSoloResultsScreen screen = null;
-
-            loadResultsScreen(() => screen = createUnrankedSoloResultsScreen());
-            AddUntilStep("wait for loaded", () => screen.IsLoaded);
-            AddAssert("retry overlay present", () => screen.RetryOverlay != null);
         }
 
         [Test]
@@ -295,11 +286,16 @@ namespace osu.Game.Tests.Visual.Ranking
         [Test]
         public void TestFetchScoresAfterShowingStatistics()
         {
-            DelayedFetchResultsScreen screen = null;
+            DelayedTestResultsScreen screen = null;
 
             var tcs = new TaskCompletionSource<bool>();
 
-            loadResultsScreen(() => screen = new DelayedFetchResultsScreen(TestResources.CreateTestScoreInfo(), tcs.Task));
+            loadResultsScreen(() =>
+            {
+                tcs = new TaskCompletionSource<bool>();
+                screen = createDelayedResultsScreen(TestResources.CreateTestScoreInfo(), tcs.Task);
+                return screen;
+            });
 
             AddUntilStep("wait for loaded", () => screen.IsLoaded);
 
@@ -371,9 +367,15 @@ namespace osu.Game.Tests.Visual.Ranking
             });
         }
 
-        private TestResultsScreen createResultsScreen(ScoreInfo score = null) => new TestResultsScreen(score ?? TestResources.CreateTestScoreInfo());
+        private TestResultsScreen createResultsScreen(ScoreInfo score = null)
+        {
+            return new TestResultsScreen(score ?? TestResources.CreateTestScoreInfo());
+        }
 
-        private UnrankedSoloResultsScreen createUnrankedSoloResultsScreen() => new UnrankedSoloResultsScreen(TestResources.CreateTestScoreInfo());
+        private DelayedTestResultsScreen createDelayedResultsScreen(ScoreInfo score = null, Task fetchWaitTask = null)
+        {
+            return new DelayedTestResultsScreen(score ?? TestResources.CreateTestScoreInfo(), fetchWaitTask);
+        }
 
         private partial class TestResultsContainer : Container
         {
@@ -397,22 +399,26 @@ namespace osu.Game.Tests.Visual.Ranking
         private partial class TestResultsScreen : SoloResultsScreen
         {
             public HotkeyRetryOverlay RetryOverlay;
+            protected readonly BindableList<ScoreInfo> Leaderboard = new BindableList<ScoreInfo>();
 
             public TestResultsScreen(ScoreInfo score)
                 : base(score)
             {
                 AllowRetry = true;
                 ShowUserStatistics = true;
+
+                Scores.BindTo(Leaderboard);
             }
 
             protected override void LoadComplete()
             {
                 base.LoadComplete();
 
+                FetchScores();
                 RetryOverlay = InternalChildren.OfType<HotkeyRetryOverlay>().SingleOrDefault();
             }
 
-            protected override APIRequest FetchScores(Action<IEnumerable<ScoreInfo>> scoresCallback)
+            protected virtual APIRequest FetchScores()
             {
                 var scores = new List<ScoreInfo>();
 
@@ -424,25 +430,29 @@ namespace osu.Game.Tests.Visual.Ranking
                     scores.Add(score);
                 }
 
-                scoresCallback?.Invoke(scores);
+                Scheduler.Add(() =>
+                {
+                    Leaderboard.Clear();
+                    Leaderboard.AddRange(scores);
+                });
 
                 return null;
             }
         }
 
-        private partial class DelayedFetchResultsScreen : TestResultsScreen
+        private partial class DelayedTestResultsScreen : TestResultsScreen
         {
             private readonly Task fetchWaitTask;
 
             public bool FetchCompleted { get; private set; }
 
-            public DelayedFetchResultsScreen(ScoreInfo score, Task fetchWaitTask = null)
+            public DelayedTestResultsScreen(ScoreInfo score, Task fetchWaitTask = null)
                 : base(score)
             {
                 this.fetchWaitTask = fetchWaitTask ?? Task.CompletedTask;
             }
 
-            protected override APIRequest FetchScores(Action<IEnumerable<ScoreInfo>> scoresCallback)
+            protected override APIRequest FetchScores()
             {
                 Task.Run(async () =>
                 {
@@ -457,32 +467,16 @@ namespace osu.Game.Tests.Visual.Ranking
                         scores.Add(score);
                     }
 
-                    scoresCallback?.Invoke(scores);
+                    Scheduler.Add(() =>
+                    {
+                        Leaderboard.Clear();
+                        Leaderboard.AddRange(scores);
 
-                    Schedule(() => FetchCompleted = true);
+                        FetchCompleted = true;
+                    });
                 });
 
                 return null;
-            }
-        }
-
-        private partial class UnrankedSoloResultsScreen : SoloResultsScreen
-        {
-            public HotkeyRetryOverlay RetryOverlay;
-
-            public UnrankedSoloResultsScreen(ScoreInfo score)
-                : base(score)
-            {
-                AllowRetry = true;
-                Score!.BeatmapInfo!.OnlineID = 0;
-                Score.BeatmapInfo.Status = BeatmapOnlineStatus.Pending;
-            }
-
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-
-                RetryOverlay = InternalChildren.OfType<HotkeyRetryOverlay>().SingleOrDefault();
             }
         }
 

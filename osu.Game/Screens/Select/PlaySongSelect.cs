@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -53,8 +54,19 @@ namespace osu.Game.Screens.Select
             AddInternal(new SongSelectTouchInputDetector());
         }
 
-        protected void PresentScore(ScoreInfo score) =>
-            FinaliseSelection(score.BeatmapInfo, score.Ruleset, () => this.Push(new SoloResultsScreen(score)));
+        protected IBindableList<ScoreInfo> Scores => playBeatmapDetailArea.Leaderboard.Scores;
+
+        protected void PresentScore(ScoreInfo score) => FinaliseSelection(score.BeatmapInfo, score.Ruleset, () => pushResultsScreen(score));
+
+        private void pushResultsScreen(ScoreInfo score)
+        {
+            var resultsScreen = new SoloResultsScreen(score)
+            {
+                Scores = { BindTarget = Scores }
+            };
+
+            this.Push(resultsScreen);
+        }
 
         protected override BeatmapDetailArea CreateBeatmapDetailArea()
         {
@@ -131,14 +143,14 @@ namespace osu.Game.Screens.Select
                 {
                     player = new ReplayPlayer((beatmap, mods) => replayGeneratingMod.CreateScoreFromReplayData(beatmap, mods))
                     {
-                        LeaderboardScores = { BindTarget = playBeatmapDetailArea.Leaderboard.Scores }
+                        LeaderboardScores = { BindTarget = Scores }
                     };
                 }
                 else
                 {
                     player = new SoloPlayer
                     {
-                        LeaderboardScores = { BindTarget = playBeatmapDetailArea.Leaderboard.Scores }
+                        LeaderboardScores = { BindTarget = Scores }
                     };
                 }
 
