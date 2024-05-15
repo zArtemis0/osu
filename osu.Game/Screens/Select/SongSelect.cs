@@ -72,7 +72,7 @@ namespace osu.Game.Screens.Select
         /// <summary>
         /// Can be null if <see cref="ShowFooter"/> is false.
         /// </summary>
-        protected Footer? Footer { get; private set; }
+        protected Footer? SongSelectFooter { get; private set; }
 
         /// <summary>
         /// Contains any panel which is triggered by a footer button.
@@ -336,7 +336,7 @@ namespace osu.Game.Screens.Select
                             BeatmapOptions = new BeatmapOptionsOverlay(),
                         }
                     },
-                    Footer = new Footer()
+                    SongSelectFooter = new Footer()
                 });
             }
 
@@ -344,10 +344,10 @@ namespace osu.Game.Screens.Select
             // therein it will be registered at the `OsuGame` level to properly function as a blocking overlay.
             LoadComponent(ModSelect = CreateModSelectOverlay());
 
-            if (Footer != null)
+            if (SongSelectFooter != null)
             {
-                foreach (var (button, overlay) in CreateFooterButtons())
-                    Footer.AddButton(button, overlay);
+                foreach (var (button, overlay) in CreateSongSelectFooterButtons())
+                    SongSelectFooter.AddButton(button, overlay);
 
                 BeatmapOptions.AddButton(@"Manage", @"collections", FontAwesome.Solid.Book, colours.Green, () => manageCollectionsDialog?.Show());
                 BeatmapOptions.AddButton(@"Delete", @"all difficulties", FontAwesome.Solid.Trash, colours.Pink, () => DeleteBeatmap(Beatmap.Value.BeatmapSetInfo));
@@ -381,7 +381,7 @@ namespace osu.Game.Screens.Select
         /// Creates the buttons to be displayed in the footer.
         /// </summary>
         /// <returns>A set of <see cref="FooterButton"/> and an optional <see cref="OverlayContainer"/> which the button opens when pressed.</returns>
-        protected virtual IEnumerable<(FooterButton, OverlayContainer?)> CreateFooterButtons() => new (FooterButton, OverlayContainer?)[]
+        protected virtual IEnumerable<(FooterButton, OverlayContainer?)> CreateSongSelectFooterButtons() => new (FooterButton, OverlayContainer?)[]
         {
             (new FooterButtonMods { Current = Mods }, ModSelect),
             (new FooterButtonRandom

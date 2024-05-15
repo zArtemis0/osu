@@ -10,28 +10,29 @@ using osu.Framework.Graphics;
 using osu.Framework.Testing;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
+using osu.Game.Overlays.Mods;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.Mods;
-using osu.Game.Screens.Select.FooterV2;
+using osu.Game.Screens.SelectV2.Footer;
 using osu.Game.Utils;
 
-namespace osu.Game.Tests.Visual.UserInterface
+namespace osu.Game.Tests.Visual.SongSelect
 {
-    public partial class TestSceneFooterButtonModsV2 : OsuTestScene
+    public partial class TestSceneScreenFooterButtonMods : OsuTestScene
     {
-        private readonly TestFooterButtonModsV2 footerButtonMods;
+        private readonly TestScreenFooterButtonMods screenFooterButtonMods;
 
         [Cached]
         private OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Aquamarine);
 
-        public TestSceneFooterButtonModsV2()
+        public TestSceneScreenFooterButtonMods()
         {
-            Add(footerButtonMods = new TestFooterButtonModsV2
+            Add(screenFooterButtonMods = new TestScreenFooterButtonMods(new TestModSelectOverlay())
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.CentreLeft,
-                X = -100,
                 Action = () => { },
+                X = -100,
             });
         }
 
@@ -97,24 +98,34 @@ namespace osu.Game.Tests.Visual.UserInterface
         public void TestUnrankedBadge()
         {
             AddStep(@"Add unranked mod", () => changeMods(new[] { new OsuModDeflate() }));
-            AddUntilStep("Unranked badge shown", () => footerButtonMods.ChildrenOfType<FooterButtonModsV2.UnrankedBadge>().Single().Alpha == 1);
+            AddUntilStep("Unranked badge shown", () => screenFooterButtonMods.ChildrenOfType<ScreenFooterButtonMods.UnrankedBadge>().Single().Alpha == 1);
             AddStep(@"Clear selected mod", () => changeMods(Array.Empty<Mod>()));
-            AddUntilStep("Unranked badge not shown", () => footerButtonMods.ChildrenOfType<FooterButtonModsV2.UnrankedBadge>().Single().Alpha == 0);
+            AddUntilStep("Unranked badge not shown", () => screenFooterButtonMods.ChildrenOfType<ScreenFooterButtonMods.UnrankedBadge>().Single().Alpha == 0);
         }
 
-        private void changeMods(IReadOnlyList<Mod> mods) => footerButtonMods.Current.Value = mods;
+        private void changeMods(IReadOnlyList<Mod> mods) => screenFooterButtonMods.Current.Value = mods;
 
         private bool assertModsMultiplier(IEnumerable<Mod> mods)
         {
             double multiplier = mods.Aggregate(1.0, (current, mod) => current * mod.ScoreMultiplier);
             string expectedValue = ModUtils.FormatScoreMultiplier(multiplier).ToString();
 
-            return expectedValue == footerButtonMods.MultiplierText.Current.Value;
+            return expectedValue == screenFooterButtonMods.MultiplierText.Current.Value;
         }
 
-        private partial class TestFooterButtonModsV2 : FooterButtonModsV2
+        private partial class TestModSelectOverlay : UserModSelectOverlay
+        {
+            protected override bool ShowPresets => true;
+        }
+
+        private partial class TestScreenFooterButtonMods : ScreenFooterButtonMods
         {
             public new OsuSpriteText MultiplierText => base.MultiplierText;
+
+            public TestScreenFooterButtonMods(ModSelectOverlay overlay)
+                : base(overlay)
+            {
+            }
         }
     }
 }
