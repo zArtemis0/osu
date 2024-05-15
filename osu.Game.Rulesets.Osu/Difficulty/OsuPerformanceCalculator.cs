@@ -86,7 +86,20 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
         private double computeAimValue(ScoreInfo score, OsuDifficultyAttributes attributes)
         {
-            double aimValue = Math.Pow(5.0 * Math.Max(1.0, attributes.AimDifficulty / 0.0675) - 4.0, 3.0) / 100000.0;
+            double aimDifficulty = attributes.AimDifficulty;
+
+            // We assume 25% of sliders in a map are difficult since there's no way to tell from the performance calculator.
+            double estimateDifficultSliders = attributes.SliderCount * 0.25;
+
+            if (attributes.SliderCount > 0)
+            {
+                // Meh and Miss are more severe on sliders than normal Ok, so punish them 2 times more
+                double estimateSliderEndsDropped = Math.Clamp(Math.Min(countOk + countMeh * 2 + countMiss * 2, attributes.MaxCombo - scoreMaxCombo), 0, estimateDifficultSliders);
+                double sliderNerfFactor = (1 - attributes.SliderFactor) * (1 - estimateSliderEndsDropped / estimateDifficultSliders) + attributes.SliderFactor;
+                aimDifficulty *= sliderNerfFactor;
+            }
+
+            double aimValue = Math.Pow(5.0 * Math.Max(1.0, aimDifficulty / 0.0675) - 4.0, 3.0) / 100000.0;
 
             double lengthBonus = 0.95 + 0.4 * Math.Min(1.0, totalHits / 2000.0) +
                                  (totalHits > 2000 ? Math.Log10(totalHits / 2000.0) * 0.5 : 0.0);
@@ -114,17 +127,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             else if (score.Mods.Any(m => m is OsuModHidden || m is OsuModTraceable))
             {
                 // We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
-                aimValue *= 1.0 + 0.04 * (12.0 - attributes.ApproachRate);
-            }
-
-            // We assume 15% of sliders in a map are difficult since there's no way to tell from the performance calculator.
-            double estimateDifficultSliders = attributes.SliderCount * 0.15;
-
-            if (attributes.SliderCount > 0)
-            {
-                double estimateSliderEndsDropped = Math.Clamp(Math.Min(countOk + countMeh + countMiss, attributes.MaxCombo - scoreMaxCombo), 0, estimateDifficultSliders);
-                double sliderNerfFactor = (1 - attributes.SliderFactor) * Math.Pow(1 - estimateSliderEndsDropped / estimateDifficultSliders, 3) + attributes.SliderFactor;
-                aimValue *= sliderNerfFactor;
+                aimValue *= 1.0 + 0.04 * (12.0 - attributes.ApproachRate) * (0.5 + 0.5 * Math.Pow(attributes.SliderFactor, 3));
             }
 
             aimValue *= accuracy;
