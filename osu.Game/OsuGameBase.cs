@@ -99,11 +99,6 @@ namespace osu.Game
         /// </summary>
         public const int SAMPLE_DEBOUNCE_TIME = 20;
 
-        /// <summary>
-        /// The maximum volume at which audio tracks should play back at. This can be set lower than 1 to create some head-room for sound effects.
-        /// </summary>
-        private const double global_track_volume_adjust = 0.8;
-
         public virtual bool UseDevelopmentServer => DebugUtils.IsDebugBuild;
 
         public virtual EndpointConfiguration CreateEndpoints() =>
@@ -229,8 +224,6 @@ namespace osu.Game
 
         private DependencyContainer dependencies;
 
-        private readonly BindableNumber<double> globalTrackVolumeAdjust = new BindableNumber<double>(global_track_volume_adjust);
-
         private Bindable<string> frameworkLocale = null!;
 
         private IBindable<LocalisationParameters> localisationParameters = null!;
@@ -352,11 +345,6 @@ namespace osu.Game
             RegisterImportHandler(BeatmapManager);
             RegisterImportHandler(ScoreManager);
             RegisterImportHandler(SkinManager);
-
-            // drop track volume game-wide to leave some head-room for UI effects / samples.
-            // this means that for the time being, gameplay sample playback is louder relative to the audio track, compared to stable.
-            // we may want to revisit this if users notice or complain about the difference (consider this a bit of a trial).
-            Audio.Tracks.AddAdjustment(AdjustableProperty.Volume, globalTrackVolumeAdjust);
 
             Beatmap = new NonNullableBindable<WorkingBeatmap>(defaultBeatmap);
 
